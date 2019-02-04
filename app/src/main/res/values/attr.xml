@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SearchSpinner">
+        <attr name="ss_elevationSize" format="dimension"/>
+        <attr name="ss_adapterItemHeight" format="dimension"/>
+        <attr name="ss_defaultText" format="string"/>
+        <attr name="ss_textColor" format="color"/>
+        <attr name="ss_textSize" format="dimension"/>
+        <attr name="ss_showArrow" format="boolean"/>
+        <attr name="ss_changeArrowColor" format="boolean"/>
+        <attr name="ss_arrowColor" format="color"/>
+        <attr name="ss_arrowImage" format="color|reference"/>
+        <attr name="ss_arrowWidth" format="dimension"/>
+        <attr name="ss_arrowHeight" format="dimension"/>
+        <attr name="ss_tipText" format="string"/>
+        <attr name="ss_tipTextColor" format="color"/>
+        <attr name="ss_tipTextSize" format="dimension"/>
+        <attr name="ss_tipViewHeight" format="dimension"/>
+        <attr name="ss_searchTextSize" format="dimension"/>
+        <attr name="ss_searchTextColor" format="color"/>
+        <attr name="ss_searchHint" format="string"/>
+        <attr name="ss_searchHintColor" format="color"/>
+        <attr name="ss_searchHeight" format="dimension"/>
+    </declare-styleable>
+    <declare-styleable name="StringSearchSpinner">
+        <attr name="ss_ignoreCase" format="boolean"/>
+    </declare-styleable>
+</resources>
