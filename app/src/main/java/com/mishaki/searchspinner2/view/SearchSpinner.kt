@@ -361,7 +361,7 @@ open class SearchSpinner<T> : LinearLayout, View.OnClickListener {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        val popupRootView = LayoutInflater.from(context).inflate(R.layout.popup_search_spinner, null)
+        val popupRootView = LayoutInflater.from(context).inflate(popupRootViewLayoutId, null)
         popupSearchView = popupRootView.findViewById(popupSearchId)
         popupDataView = popupRootView.findViewById(popupDataId)
         popupTipView = popupRootView.findViewById(popupTipId)
