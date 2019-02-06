@@ -14,101 +14,101 @@
 <th>注释</th>
 </tr>
 <tr align="center">
-<td align="center">ss_elevationSize</td>
+<td>ss_elevationSize</td>
 <td>dimension</td>
 <td>阴影的大小</td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_adapterItemHeight</td>
 <td>dimension</td>
 <td>adapter的高度</td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_defaultText</td>
 <td>string</td>
 <td>默认的文本</td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_textColor</td>
 <td>color</td>
 <td>默认/选择后显示的文本的颜色</td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_textSize</td>
 <td>dimension</td>
 <td>默认/选择后文本的大小</td>
 </td>
-<tr>
+<tr align="center">
 <td>ss_showArrow</td>
 <td>boolean</td>
 <td>是否显示三角形</td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_changeArrowColor</td>
 <td>boolean</>
 <td>是否改变三角形的颜色,<b>默认不改变</b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_arrowColor</td>
 <td>color</>
 <td>如果改变的话改变的颜色,默认<b>#FFAAAAAA</b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_arrowImage</td>
 <td>color|reference</td>
 <td>三角形的图片,<b>要更换</b>的时候才使用</td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_arrowWidth</td>
 <td>dimension</>
 <td>三角形的宽度,不设置使用<b>原始高度</b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_arrowHeight</td>
 <td>dimension</td>
 <td>三角形的高度,不设置使用<b>原始高度</b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_tipText</td>
 <td>string</td>
 <td>当没有搜索结果的时候,提示的文本,默认<b>暂无搜索结果</b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_tipTextColor</td>
 <td>color</td>
 <td>当没有搜索结果的时候,提示的文本的<b>颜色</b>,默认<b>@android:color/black</b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_tipTextSize</td>
 <td>dimension</td>
 <td>当没有搜索结果的时候,提示的文本的<b>大小</b>,默认<b>15sp</b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_tipViewHeight</td>
 <td>dimension</td>
 <td>当没有搜索结果的时候,提示的文本的<b>高度</b>,默认跟随根View的高度</td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_searchTextSize</td>
 <td>dimension</td>
 <td>搜索框的文本的<b>大小</b>,默认<b><15sp/b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_searchTextColor</td>
 <td>color</td>
 <td>搜索框的文本的<b>颜色</b>,默认<b>#FF000000</b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_searchHint</td>
 <td>string</td>
 <td>搜索框<b>提示的文本</b>,默认空</td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_searchHintColor</rd>
 <td>color</td>
 <td>搜索框<b>提示的文本的颜色</b>,默认<b>#FFFAFAFA</b></td>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_searchHeight</td>
 <td>dimension</td>
 <td>搜索框的<b>高度</b>,默认跟随根View的高度</td>
@@ -121,7 +121,7 @@
 <th>类型</th>
 <th>注释</th>
 </tr>
-<tr>
+<tr align="center">
 <td>ss_ignoreCase</td>
 <td>boolean</td>
 <td>搜索的时候是否忽略大小写</td>
