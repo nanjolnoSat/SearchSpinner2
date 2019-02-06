@@ -13,7 +13,7 @@
 <th>类型</th>
 <th>注释</th>
 </tr>
-<tr>
+<tr aligin="center">
 <td align="center">ss_elevationSize</td>
 <td>dimension</td>
 <td>阴影的大小</td>
