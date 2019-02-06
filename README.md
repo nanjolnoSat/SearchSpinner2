@@ -115,7 +115,7 @@
 </tr>
 </table>
 <h3>StringSearchSpinner附带的属性</h3>
-<table border="1" cellspacing="0" cellpadding="10px" style="text-align:center;">
+<table>
 <tr>
 <th>属性名称</th>
 <th>类型</th>
