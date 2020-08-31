@@ -6,7 +6,6 @@ import android.content.res.Resources
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.Drawable
-import android.support.v4.content.ContextCompat
 import android.text.Editable
 import android.text.TextUtils
 import android.text.TextWatcher
@@ -14,6 +13,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.*
 import android.widget.*
+import androidx.core.content.ContextCompat
 import com.mishaki.searchspinner2.R
 import com.mishaki.searchspinner2.adapter.BaseSpinnerAdapter
 import com.mishaki.searchspinner2.mode.SpinnerContentMode
