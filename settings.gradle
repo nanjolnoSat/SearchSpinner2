@@ -1,1 +1,2 @@
+include ':searchspinner2_lib'
 include ':app'
