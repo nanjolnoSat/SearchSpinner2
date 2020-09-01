@@ -13,7 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Created by 杜壁奇<br/>
- * on 2020/08/30 22:14
+ * on 2020/08/30 22:14<br/>
+ * 放在view包是因为有些方法只想包权限，不想public
  */
 public abstract class BaseSpinnerAdapter<T, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
     @NonNull
@@ -85,7 +86,6 @@ public abstract class BaseSpinnerAdapter<T, VH extends RecyclerView.ViewHolder> 
     protected abstract void onBindNormalViewHolder(@NonNull VH holder, int position);
 
     protected abstract void onBindSearchViewHolder(@NonNull VH holder, int position, @NonNull String searchContent);
-
 
     @Override
     public int getItemCount() {

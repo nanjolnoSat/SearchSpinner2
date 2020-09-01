@@ -1,6 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: "kotlin-android"
-apply plugin: "kotlin-android-extensions"
 apply from: "$rootDir/javaCompileVersion.gradle"
 
 android {
@@ -24,14 +22,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "androidx.core:core:${rootProject.ext.androidXVersion}"
-    //kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    //anko
-    implementation "org.jetbrains.anko:anko-commons:$anko_version"
-    implementation "org.jetbrains.anko:anko-sdk25:$anko_version"
-    implementation "org.jetbrains.anko:anko-appcompat-v7:$anko_version"
-    implementation "org.jetbrains.anko:anko-support-v4:$anko_version"
+    implementation deps.androidCore
+    implementation deps.androidAppcompat
     implementation project(path: ':libsearchspinner')
-
 }

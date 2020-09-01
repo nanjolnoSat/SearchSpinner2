@@ -11,6 +11,7 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -489,7 +490,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         if (arrowImage != null) {
             imageView.setImageDrawable(arrowImage);
         } else {
-            imageView.setImageResource(R.drawable.search_down);
+            imageView.setImageResource(R.drawable.libss_search_down);
         }
         //如果不喜欢三角形的颜色,可以在layout文件通过attr修改
         if (changeArrowColor) {
@@ -523,7 +524,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
     }
 
     protected void initResValue() {
-        setPopupRootViewLayoutId(R.layout.popup_search_spinner);
+        setPopupRootViewLayoutId(R.layout.libss_popup_search_spinner);
         setPopupSearchId(R.id.popup_search_spinner_et);
         setPopupDataId(R.id.popup_search_spinner_lv);
         setPopupTipId(R.id.popup_search_spinner_tv);
@@ -534,7 +535,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         popupWindow.setFocusable(true);
         popupWindow.setOutsideTouchable(true);
         //设置白色背景
-        popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.popup_search_spinner));
+        popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), R.drawable.libss_popup_search_spinner));
         try {
             //禁止输入法影响屏幕的高度,否则会导致PopupWindow显示的位置不准确
             popupWindow.setInputMethodMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
@@ -543,6 +544,8 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         }
         View popupRootView = LayoutInflater.from(getContext()).inflate(popupRootViewLayoutId, null, false);
         popupSearchView = popupRootView.findViewById(popupSearchId);
+        View view =popupRootView.findViewById(popupDataId);
+        Log.d("SearchSpinner","view:" + view);
         popupDataView = popupRootView.findViewById(popupDataId);
         popupTipView = popupRootView.findViewById(popupTipId);
         popupWindow.setContentView(popupRootView);
