@@ -26,6 +26,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.mishaki.libsearchspinner.R;
+import com.mishaki.libsearchspinner.controller.SearchSpinnerArrowController;
+import com.mishaki.libsearchspinner.controller.SearchSpinnerSearchController;
+import com.mishaki.libsearchspinner.controller.SearchSpinnerTextController;
+import com.mishaki.libsearchspinner.controller.SearchSpinnerTipController;
 import com.mishaki.libsearchspinner.model.SpinnerContentModel;
 import com.mishaki.libsearchspinner.model.SpinnerFilterModel;
 import com.mishaki.libsearchspinner.utils.SearchSpinnerConstant;
@@ -48,7 +52,11 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
     @NonNull
     private TextView textView;
     @NonNull
+    private SearchSpinnerTextController textController;
+    @NonNull
     private ImageView imageView;
+    @NonNull
+    private SearchSpinnerArrowController arrowController;
 
     //可以交给子类初始化的，提供set方法
     private int popupRootViewLayoutId = View.NO_ID;
@@ -60,9 +68,13 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
     @NonNull
     private EditText popupSearchView;
     @NonNull
+    private SearchSpinnerSearchController searchController;
+    @NonNull
     private RecyclerView popupDataView;
     @NonNull
     private TextView popupTipView;
+    @NonNull
+    private SearchSpinnerTipController tipController;
 
     //内部使用的
     private final int screenHeight;
@@ -99,6 +111,9 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
     private String searchContent = SearchSpinnerConstant.StringValues.EMPTY_VALUE;
 
     private OnSelectedListener onSelectedListener = null;
+
+    //PositionInfo并不存在高并发使用场景，所以没必要使用资源池，只要有一个公共对象即可
+    private final PositionInfo positionInfo = new PositionInfo();
 
     public SearchSpinner(Context context) {
         this(context, null, 0);
@@ -158,8 +173,12 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         super.setOrientation(LinearLayout.HORIZONTAL);
 
         initRootView(defaultText, textColor, textSize, showArrow, changeArrowColor, arrowColor, arrowImage, arrowWidth, arrowHeight);
+        textController = new SearchSpinnerTextController(textView);
+        arrowController = new SearchSpinnerArrowController(imageView);
         initResValue();
         initPopupWindow();
+        tipController = new SearchSpinnerTipController(popupTipView);
+        searchController = new SearchSpinnerSearchController(popupSearchView);
         initTipView(tipText, tipTextColor, tipTextSize, tipViewHeight);
         initSearchView(searchTextSize, searchTextColor, searchHint, searchHintColor, searchViewHeight);
 
@@ -442,12 +461,12 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         int bottomHeight = screenHeight - y - getHeight();
         //如果下面够显示,显示在下面
         if (bottomHeight > popupMaxHeight + elevationSize) {
-            return new PositionInfo(false, popupMaxHeight);
+            return positionInfo.setValue(false, popupMaxHeight);
         }
         //如果上面够显示,显示在上面
         int topHeight = y - statusBarHeight;
         if (topHeight > popupMaxHeight + elevationSize) {
-            return new PositionInfo(true, popupMaxHeight);
+            return positionInfo.setValue(true, popupMaxHeight);
         }
         //如果都不够
         boolean isTop = topHeight > bottomHeight;
@@ -459,7 +478,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
             //如果下面大,下面的高度-阴影高度
             popupHeight = bottomHeight - elevationSize;
         }
-        return new PositionInfo(isTop, popupHeight);
+        return positionInfo.setValue(isTop, popupHeight);
     }
     //protected method end===========================
 
@@ -544,8 +563,8 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         }
         View popupRootView = LayoutInflater.from(getContext()).inflate(popupRootViewLayoutId, null, false);
         popupSearchView = popupRootView.findViewById(popupSearchId);
-        View view =popupRootView.findViewById(popupDataId);
-        Log.d("SearchSpinner","view:" + view);
+        View view = popupRootView.findViewById(popupDataId);
+        Log.d("SearchSpinner", "view:" + view);
         popupDataView = popupRootView.findViewById(popupDataId);
         popupTipView = popupRootView.findViewById(popupTipId);
         popupWindow.setContentView(popupRootView);
@@ -661,7 +680,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
     }
     //protected set end===========================
 
-    //public set start===========================
+    //public method start===========================
     public void setTopPopupAnim(int topPopupAnim) {
         this.topPopupAnim = topPopupAnim;
     }
@@ -716,7 +735,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         popupTipView.setHeight((int) actualEmptyTipViewHeight);
     }
 
-    public <VH extends RecyclerView.ViewHolder> void setAdapter(BaseSpinnerAdapter<T, VH> adapter) {
+    public final <VH extends RecyclerView.ViewHolder> void setAdapter(BaseSpinnerAdapter<T, VH> adapter) {
         if (adapter == null) {
             return;
         }
@@ -728,7 +747,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         popupDataView.setAdapter(adapter);
     }
 
-    public <VH extends RecyclerView.ViewHolder> void setAdapter(@NonNull BaseSpinnerAdapter<T, VH> adapter,@NonNull List<T> list) {
+    public final <VH extends RecyclerView.ViewHolder> void setAdapter(@NonNull BaseSpinnerAdapter<T, VH> adapter, @NonNull List<T> list) {
         if (!list.isEmpty()) {
             selectIndex = 0;
             final String text;
@@ -743,205 +762,47 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         setAdapter(adapter);
     }
 
-    public void setOnSelectedListener(OnSelectedListener onSelectedListener) {
+    public final void setOnSelectedListener(OnSelectedListener onSelectedListener) {
         this.onSelectedListener = onSelectedListener;
     }
 
-    public void setText(CharSequence text) {
-        textView.setText(text);
+    @NonNull
+    public final SearchSpinnerTextController getTextController() {
+        return textController;
     }
 
-    public void setText(int resId) {
-        textView.setText(resId);
+    @NonNull
+    public final SearchSpinnerArrowController getArrowController() {
+        return arrowController;
     }
 
-    public void setTextColor(int color) {
-        textView.setTextColor(color);
+    @NonNull
+    public final SearchSpinnerTipController getTipController() {
+        return tipController;
     }
 
-    public void setTextSize(float sp) {
-        textView.setTextSize(sp);
+    @NonNull
+    public final SearchSpinnerSearchController getSearchController() {
+        return searchController;
     }
 
-    public void setTextSize(int unit, float size) {
-        textView.setTextSize(unit, size);
-    }
-
-    public void setTextBackground(int resId) {
-        textView.setBackgroundResource(resId);
-    }
-
-    public void setTextBackgroundColor(int color) {
-        textView.setBackgroundColor(color);
-    }
-
-    public void setTextGravity(int gravity) {
-        textView.setGravity(gravity);
-    }
-
-    public void setTextPaddingLeft(float paddingLeft) {
-        textView.setPadding((int) paddingLeft, textView.getPaddingTop(), textView.getPaddingRight(), textView.getPaddingBottom());
-    }
-
-    public void setTextPaddingTop(float paddingTop) {
-        textView.setPadding(textView.getPaddingLeft(), (int) paddingTop, textView.getPaddingRight(), textView.getPaddingBottom());
-    }
-
-    public void setTextPaddingRight(float paddingRight) {
-        textView.setPadding(textView.getPaddingLeft(), textView.getPaddingTop(), (int) paddingRight, textView.getPaddingBottom());
-    }
-
-    public void setTextPaddingBottom(float paddingBottom) {
-        textView.setPadding(textView.getPaddingLeft(), textView.getPaddingTop(), textView.getPaddingRight(), (int) paddingBottom);
-    }
-
-    public void setTextPadding(float paddingLeft, float paddingTop, float paddingRight, float paddingBottom) {
-        textView.setPadding((int) paddingLeft, (int) paddingTop, (int) paddingRight, (int) paddingBottom);
-    }
-
-    public void setTextBackground(Drawable drawable) {
-        textView.setBackground(drawable);
-    }
-
-    public void showArrow() {
-        imageView.setVisibility(View.VISIBLE);
-    }
-
-    public void hideArrow() {
-        imageView.setVisibility(View.GONE);
-    }
-
-    public void setArrowColor(int color) {
-        imageView.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
-    }
-
-    public void setArrowImage(Drawable drawable) {
-        imageView.setImageDrawable(drawable);
-    }
-
-    public void setArrowImage(int resId) {
-        imageView.setImageResource(resId);
-    }
-
-    public void setArrowWidth(float width) {
-        ViewGroup.LayoutParams param = imageView.getLayoutParams();
-        param.width = (int) width;
-        imageView.setLayoutParams(param);
-    }
-
-    public void setArrowHeight(float height) {
-        ViewGroup.LayoutParams param = imageView.getLayoutParams();
-        param.height = (int) height;
-        imageView.setLayoutParams(param);
-    }
-
-    public void setArrowSize(float width, float height) {
-        ViewGroup.LayoutParams param = imageView.getLayoutParams();
-        param.width = (int) width;
-        param.height = (int) height;
-        imageView.setLayoutParams(param);
-    }
-
-    public void setTipText(CharSequence text) {
-        popupTipView.setText(text);
-    }
-
-    public void setTipText(int resId) {
-        popupTipView.setText(resId);
-    }
-
-    public void setTipTextColor(int textColor) {
-        popupTipView.setTextColor(textColor);
-    }
-
-    public void setTipTextSize(float sp) {
-        popupTipView.setTextSize(sp);
-    }
-
-    public void setTipTextSize(int unit, float size) {
-        popupTipView.setTextSize(unit, size);
-    }
-
-    public void setTipViewGravity(int gravity) {
-        popupTipView.setGravity(gravity);
-    }
-
-    public void setTipViewPaddingLeft(float paddingLeft) {
-        popupTipView.setPadding((int) paddingLeft, popupTipView.getPaddingTop(), popupTipView.getPaddingRight(), popupTipView.getPaddingBottom());
-    }
-
-    public void setTipViewPaddingTop(float paddingTop) {
-        popupTipView.setPadding(popupTipView.getPaddingLeft(), (int) paddingTop, popupTipView.getPaddingRight(), popupTipView.getPaddingBottom());
-    }
-
-    public void setTipViewPaddingRight(float paddingRight) {
-        popupTipView.setPadding(popupTipView.getPaddingLeft(), popupTipView.getPaddingTop(), (int) paddingRight, popupTipView.getPaddingBottom());
-    }
-
-    public void setTipViewPaddingBottom(float paddingBottom) {
-        popupTipView.setPadding(popupTipView.getPaddingLeft(), popupTipView.getPaddingTop(), popupTipView.getPaddingRight(), (int) paddingBottom);
-    }
-
-    public void setTipViewPadding(float paddingLeft, float paddingTop, float paddingRight, float paddingBottom) {
-        popupTipView.setPadding(((int) paddingLeft), ((int) paddingTop), ((int) paddingRight), ((int) paddingBottom));
-    }
-
-    public void setTipViewBackground(int resId) {
-        popupTipView.setBackgroundResource(resId);
-    }
-
-    public void setTipViewBackgroundDrawable(Drawable drawable) {
-        popupTipView.setBackground(drawable);
-    }
-
-    public void setTipViewBackgroundColor(int color) {
-        popupTipView.setBackgroundColor(color);
-    }
-
-    public void setSearchViewTextSize(float sp) {
-        popupSearchView.setTextSize(sp);
-    }
-
-    public void setSearchViewTextSize(int unit, float size) {
-        popupSearchView.setTextSize(unit, size);
-    }
-
-    public void setSearchViewTextColor(int color) {
-        popupSearchView.setTextColor(color);
-    }
-
-    public void setSearchViewHint(String text) {
-        popupSearchView.setHint(text);
-    }
-
-    public void setSearchViewHintColor(int color) {
-        popupSearchView.setHintTextColor(color);
-    }
-
-    public void setSearchViewBackground(int resId) {
-        popupSearchView.setBackgroundResource(resId);
-    }
-
-    public void setSearchViewBackground(Drawable drawable) {
-        popupSearchView.setBackground(drawable);
-    }
-
-    public void setSearchViewBackgroundColor(int color) {
-        popupSearchView.setBackgroundColor(color);
-    }
-    //public set end===========================
+    //public method end===========================
 
     public interface OnSelectedListener {
         void onSelected(int position);
     }
 
-    protected static class PositionInfo {
-        final boolean isTop;
-        final float popupHeight;
+    protected static final class PositionInfo {
+        boolean isTop;
+        float popupHeight;
 
-        protected PositionInfo(boolean isTop, float height) {
+        protected PositionInfo() {
+        }
+
+        protected PositionInfo setValue(boolean isTop, float popupHeight) {
             this.isTop = isTop;
-            this.popupHeight = height;
+            this.popupHeight = popupHeight;
+            return this;
         }
     }
 }
