@@ -11,6 +11,7 @@ public class SearchSpinnerSearchController {
     private final EditText popupSearchView;
 
     public SearchSpinnerSearchController(EditText popupSearchView) {
+        ControllerUtil.checkView(popupSearchView,"PopupSearchView");
         this.popupSearchView = popupSearchView;
     }
 

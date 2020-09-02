@@ -2,7 +2,6 @@ package com.mishaki.libsearchspinner.view;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -11,7 +10,6 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -114,6 +112,8 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
 
     //PositionInfo并不存在高并发使用场景，所以没必要使用资源池，只要有一个公共对象即可
     private final PositionInfo positionInfo = new PositionInfo();
+    //独立成成员变量只是为了解决频繁new的问题
+    private final ArrayList<View> otherChildList = new ArrayList<>();
 
     public SearchSpinner(Context context) {
         this(context, null, 0);
@@ -175,7 +175,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         initRootView(defaultText, textColor, textSize, showArrow, changeArrowColor, arrowColor, arrowImage, arrowWidth, arrowHeight);
         textController = new SearchSpinnerTextController(textView);
         arrowController = new SearchSpinnerArrowController(imageView);
-        initResValue();
+        initResId();
         initPopupWindow();
         tipController = new SearchSpinnerTipController(popupTipView);
         searchController = new SearchSpinnerSearchController(popupSearchView);
@@ -186,7 +186,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         popupDataView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         initPopupDataItemClick();
 
-        statusBarHeight = getStatusBarHeight();
+        statusBarHeight = Util.getStatusBarHeight();
         screenHeight = context.getResources().getDisplayMetrics().heightPixels;
         popupDataView.setAdapter(adapter);
         popupWindow.setElevation(elevationSize);
@@ -215,8 +215,28 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
     }
 
     @Override
-    public void addView(View child) {
-        throw new IllegalStateException("Can not addView");
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+        int childCount = getChildCount();
+        //将多余的View移除
+        if (childCount > 2) {
+            if (childCount - 2 > 10) {
+                otherChildList.ensureCapacity(childCount - 2);
+            }
+            for (int i = 2; i < childCount; i++) {
+                View child = getChildAt(i);
+                otherChildList.add(child);
+            }
+            for (View child : otherChildList) {
+                removeView(child);
+            }
+            otherChildList.clear();
+        }
+    }
+
+    @Override
+    public final void setOrientation(int orientation) {
+        super.setOrientation(LinearLayout.HORIZONTAL);
     }
 
     private int y = 0;
@@ -257,7 +277,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
             RelativeLayout.LayoutParams param3 = (RelativeLayout.LayoutParams) popupTipView.getLayoutParams();
             param3.addRule(RelativeLayout.ABOVE, popupSearchId);
 
-            popupWindow.showAsDropDown(this, 0, 0, Gravity.BOTTOM | Gravity.START);
+            popupWindow.showAsDropDown(this, 0, 0, Gravity.START | Gravity.BOTTOM);
         } else {
             if (bottomPopupAnim != View.NO_ID) {
                 popupWindow.setAnimationStyle(bottomPopupAnim);
@@ -273,31 +293,20 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
     }
 
     //private method start===========================
-    private int dip(float value) {
-        return (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getContext().getResources().getDisplayMetrics()) + 0.5f);
-    }
-
-    private boolean stringIsNotEmpty(CharSequence value) {
-        return value != null && value.length() != 0;
-    }
-
-    private boolean isEquals(Object obj1, Object obj2) {
-        return obj1 == obj2 || obj1.equals(obj2);
-    }
-
-    private int getStatusBarHeight() {
-        int resourceId = Resources.getSystem().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            return Resources.getSystem().getDimensionPixelSize(resourceId);
+    private void removeRule(View view) {
+        if (view.getParent() instanceof RelativeLayout) {
+            RelativeLayout.LayoutParams param = (RelativeLayout.LayoutParams) view.getLayoutParams();
+            param.removeRule(RelativeLayout.BELOW);
+            param.removeRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            param.removeRule(RelativeLayout.ABOVE);
         }
-        return 0;
     }
 
     private void initPopupSearchViewTextWatcher() {
         popupSearchView.addTextChangedListener(new TextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
-                isSearch = stringIsNotEmpty(s);
+                isSearch = Util.stringIsNotEmpty(s);
                 searchContent = s.toString();
                 final int popupWindowHeight;
                 if (isSearch) {
@@ -308,7 +317,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
                         T content = list.get(selectIndex);
                         int count1 = -1;
                         for (int i = 0; i < list.size(); i++) {
-                            if (isEquals(list.get(i), content)) {
+                            if (Util.isEquals(list.get(i), content)) {
                                 count1++;
                             }
                             if (i == selectIndex) {
@@ -317,10 +326,10 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
                         }
                         int count2 = -1;
                         for (int i = 0; i < searchList.size(); i++) {
-                            if (isEquals(searchList.get(i), content)) {
+                            if (Util.isEquals(searchList.get(i), content)) {
                                 count2++;
                             }
-                            if (count1 == count2) {
+                            if (count1 != -1 && count1 == count2) {
                                 searchSelectIndex = i;
                                 break;
                             }
@@ -334,7 +343,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
                     if (searchList.isEmpty()) {
                         popupDataView.setVisibility(View.GONE);
                         popupTipView.setVisibility(View.VISIBLE);
-                        popupWindowHeight = (int) (actualSearchViewHeight + dip(2f) + actualEmptyTipViewHeight);
+                        popupWindowHeight = (int) (actualSearchViewHeight + Util.dip(getContext(), 2f) + actualEmptyTipViewHeight);
                     } else {
                         popupTipView.setVisibility(View.GONE);
                         popupDataView.setVisibility(View.VISIBLE);
@@ -364,9 +373,9 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
                     popupWindowHeight = (int) getPopupSearchHeight(list);
                 }
                 if (isTop) {
-                    popupWindow.update(getLeft(), y - popupWindowHeight, -1, popupWindowHeight);
+                    popupWindow.update(getLeft(), y - popupWindowHeight, SearchSpinnerConstant.Dimens.POPUP_NO_CHANGE, popupWindowHeight);
                 } else {
-                    popupWindow.update(-1, popupWindowHeight);
+                    popupWindow.update(SearchSpinnerConstant.Dimens.POPUP_NO_CHANGE, popupWindowHeight);
                 }
             }
 
@@ -407,9 +416,6 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
                         break;
                     }
                 }
-                if (onSelectedListener != null) {
-                    onSelectedListener.onSelected(selectIndex);
-                }
             } else {
                 searchSelectIndex = SearchSpinnerConstant.Index.NO_INDEX;
                 final String text;
@@ -423,21 +429,12 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
                 if (adapter != null) {
                     adapter.setSelectedPosition(selectIndex);
                 }
-                if (onSelectedListener != null) {
-                    onSelectedListener.onSelected(selectIndex);
-                }
+            }
+            if (onSelectedListener != null) {
+                onSelectedListener.onSelected(selectIndex);
             }
             popupWindow.dismiss();
         };
-    }
-
-    private void removeRule(View view) {
-        if (view.getParent() instanceof RelativeLayout) {
-            RelativeLayout.LayoutParams param = (RelativeLayout.LayoutParams) view.getLayoutParams();
-            param.removeRule(RelativeLayout.BELOW);
-            param.removeRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-            param.removeRule(RelativeLayout.ABOVE);
-        }
     }
 
     private void checkFilterModel() {
@@ -498,12 +495,12 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         textView.setEllipsize(TextUtils.TruncateAt.END);
         //默认的文本,没有设置则为空
         textView.setText(defaultText);
-        LayoutParams param1 = generateDefaultLayoutParams();
-        param1.gravity = Gravity.CENTER_VERTICAL;
-        //ImageView用剩下的都给TextView用
-        param1.weight = 1f;
-        textView.setLayoutParams(param1);
-        super.addView(textView);
+        LinearLayout.LayoutParams textViewParam = generateDefaultLayoutParams();
+        textViewParam.gravity = Gravity.CENTER_VERTICAL;
+        //ImageView用剩下的空间都给TextView用
+        textViewParam.weight = 1f;
+        textView.setLayoutParams(textViewParam);
+        addView(textView);
 
         imageView = new ImageView(getContext());
         if (arrowImage != null) {
@@ -515,34 +512,34 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         if (changeArrowColor) {
             imageView.setColorFilter(new PorterDuffColorFilter(arrowColor, PorterDuff.Mode.SRC_IN));
         }
-        LayoutParams param2 = new LayoutParams(0, 0);
+        LinearLayout.LayoutParams imageViewParam = generateDefaultLayoutParams();
         if (arrowWidth != SearchSpinnerConstant.Dimens.FLOAT_DEFAULT && arrowHeight != SearchSpinnerConstant.Dimens.FLOAT_DEFAULT) {
-            param2.width = (int) arrowWidth;
-            param2.height = (int) arrowHeight;
+            imageViewParam.width = (int) arrowWidth;
+            imageViewParam.height = (int) arrowHeight;
         } else {
             if (arrowWidth != SearchSpinnerConstant.Dimens.FLOAT_DEFAULT) {
-                param2.width = (int) arrowWidth;
-                param2.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                imageViewParam.width = (int) arrowWidth;
+                imageViewParam.height = ViewGroup.LayoutParams.WRAP_CONTENT;
             } else if (arrowHeight != SearchSpinnerConstant.Dimens.FLOAT_DEFAULT) {
-                param2.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-                param2.height = (int) arrowHeight;
+                imageViewParam.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                imageViewParam.height = (int) arrowHeight;
             } else {
-                param2.width = dip(SearchSpinnerConstant.Dimens.DEFAULT_ARROW_SIZE);
-                param2.height = dip(SearchSpinnerConstant.Dimens.DEFAULT_ARROW_SIZE);
+                imageViewParam.width = Util.dip(getContext(), SearchSpinnerConstant.Dimens.DEFAULT_ARROW_SIZE);
+                imageViewParam.height = Util.dip(getContext(), SearchSpinnerConstant.Dimens.DEFAULT_ARROW_SIZE);
             }
         }
-        param2.gravity = Gravity.CENTER_VERTICAL;
-        param2.setMarginStart(dip(SearchSpinnerConstant.Dimens.ARROW_MARGIN_HORIZONTAL));
-        param2.setMarginEnd(dip(SearchSpinnerConstant.Dimens.ARROW_MARGIN_HORIZONTAL));
-        imageView.setLayoutParams(param2);
+        imageViewParam.gravity = Gravity.CENTER_VERTICAL;
+        imageViewParam.setMarginStart(Util.dip(getContext(), SearchSpinnerConstant.Dimens.ARROW_MARGIN_HORIZONTAL));
+        imageViewParam.setMarginEnd(Util.dip(getContext(), SearchSpinnerConstant.Dimens.ARROW_MARGIN_HORIZONTAL));
+        imageView.setLayoutParams(imageViewParam);
         imageView.setAdjustViewBounds(true);
-        super.addView(imageView);
+        addView(imageView);
         if (!showArrow) {
             imageView.setVisibility(View.GONE);
         }
     }
 
-    protected void initResValue() {
+    protected void initResId() {
         setPopupRootViewLayoutId(R.layout.libss_popup_search_spinner);
         setPopupSearchId(R.id.popup_search_spinner_et);
         setPopupDataId(R.id.popup_search_spinner_lv);
@@ -563,8 +560,6 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         }
         View popupRootView = LayoutInflater.from(getContext()).inflate(popupRootViewLayoutId, null, false);
         popupSearchView = popupRootView.findViewById(popupSearchId);
-        View view = popupRootView.findViewById(popupDataId);
-        Log.d("SearchSpinner", "view:" + view);
         popupDataView = popupRootView.findViewById(popupDataId);
         popupTipView = popupRootView.findViewById(popupTipId);
         popupWindow.setContentView(popupRootView);
@@ -576,7 +571,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
 
     protected void initTipView(String tipText, int tipTextColor, float tipTextSize, float tipViewHeight) {
         popupTipView.setGravity(Gravity.CENTER);
-        if (stringIsNotEmpty(tipText)) {
+        if (Util.stringIsNotEmpty(tipText)) {
             popupTipView.setText(tipText);
         }
         popupTipView.setTextColor(tipTextColor);
@@ -598,7 +593,7 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
             popupSearchView.setTextSize(TypedValue.COMPLEX_UNIT_PX, searchTextSize);
         }
         popupSearchView.setTextColor(searchTextColor);
-        if (stringIsNotEmpty(searchHint)) {
+        if (Util.stringIsNotEmpty(searchHint)) {
             popupSearchView.setHint(searchHint);
         }
         popupSearchView.setHintTextColor(searchHintColor);
@@ -642,58 +637,58 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
     }
 
     protected float getPopupMaxHeight(List<T> list) {
-        return actualSearchViewHeight + list.size() * actualAdapterItemHeight + dip(2f);
+        return actualSearchViewHeight + list.size() * actualAdapterItemHeight + Util.dip(getContext(), 2f);
     }
     //protected get end===========================
 
     //protected set start===========================
-    protected void setPopupRootViewLayoutId(int popupRootViewLayoutId) {
+    protected final void setPopupRootViewLayoutId(int popupRootViewLayoutId) {
         this.popupRootViewLayoutId = popupRootViewLayoutId;
     }
 
-    protected void setPopupSearchId(int popupSearchId) {
+    protected final void setPopupSearchId(int popupSearchId) {
         this.popupSearchId = popupSearchId;
     }
 
-    protected void setPopupDataId(int popupDataId) {
+    protected final void setPopupDataId(int popupDataId) {
         this.popupDataId = popupDataId;
     }
 
-    protected void setPopupTipId(int popupTipId) {
+    protected final void setPopupTipId(int popupTipId) {
         this.popupTipId = popupTipId;
     }
 
-    protected void setPopupWindow(@NonNull PopupWindow popupWindow) {
+    protected final void setPopupWindow(@NonNull PopupWindow popupWindow) {
         this.popupWindow = popupWindow;
     }
 
-    protected void setPopupSearchView(@NonNull EditText popupSearchView) {
+    protected final void setPopupSearchView(@NonNull EditText popupSearchView) {
         this.popupSearchView = popupSearchView;
     }
 
-    protected void setPopupDataView(@NonNull RecyclerView popupDataView) {
+    protected final void setPopupDataView(@NonNull RecyclerView popupDataView) {
         this.popupDataView = popupDataView;
     }
 
-    protected void setPopupTipView(@NonNull TextView popupTipView) {
+    protected final void setPopupTipView(@NonNull TextView popupTipView) {
         this.popupTipView = popupTipView;
     }
     //protected set end===========================
 
     //public method start===========================
-    public void setTopPopupAnim(int topPopupAnim) {
+    public final void setTopPopupAnim(int topPopupAnim) {
         this.topPopupAnim = topPopupAnim;
     }
 
-    public void setBottomPopupAnim(int bottomPopupAnim) {
+    public final void setBottomPopupAnim(int bottomPopupAnim) {
         this.bottomPopupAnim = bottomPopupAnim;
     }
 
-    public void setFilterModel(SpinnerFilterModel<T> filterModel) {
+    public final void setFilterModel(SpinnerFilterModel<T> filterModel) {
         this.filterModel = filterModel;
     }
 
-    public void setContentModel(SpinnerContentModel<T> contentModel) {
+    public final void setContentModel(SpinnerContentModel<T> contentModel) {
         this.contentModel = contentModel;
     }
 
@@ -766,21 +761,33 @@ public class SearchSpinner<T> extends LinearLayout implements View.OnClickListen
         this.onSelectedListener = onSelectedListener;
     }
 
+    /**
+     * 返回SearchSpinner显示的文本的样式的控制器
+     */
     @NonNull
     public final SearchSpinnerTextController getTextController() {
         return textController;
     }
 
+    /**
+     * 返回SearchSpinner三角形图标的控制器
+     */
     @NonNull
     public final SearchSpinnerArrowController getArrowController() {
         return arrowController;
     }
 
+    /**
+     * 返回当搜索结果为空时的TextView的控制器
+     */
     @NonNull
     public final SearchSpinnerTipController getTipController() {
         return tipController;
     }
 
+    /**
+     * 返回搜索框的控制器
+     */
     @NonNull
     public final SearchSpinnerSearchController getSearchController() {
         return searchController;

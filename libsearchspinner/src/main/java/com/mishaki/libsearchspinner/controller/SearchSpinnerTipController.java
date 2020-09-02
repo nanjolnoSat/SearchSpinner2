@@ -11,6 +11,7 @@ public class SearchSpinnerTipController {
     private final TextView popupTipView;
 
     public SearchSpinnerTipController(TextView popupTipView) {
+        ControllerUtil.checkView(popupTipView,"PopupTipView");
         this.popupTipView = popupTipView;
     }
 

@@ -15,6 +15,7 @@ public class SearchSpinnerArrowController {
     private final ImageView imageView;
 
     public SearchSpinnerArrowController(ImageView imageView) {
+        ControllerUtil.checkView(imageView,"ArrowView");
         this.imageView = imageView;
     }
 

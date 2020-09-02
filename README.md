@@ -1,6 +1,6 @@
 # SearchSpinner2
 **2020/09/01更新**
-主要涉及以下5个方面
+<br/>主要涉及以下5个方面
  - 开发语言换成Java
  - 将ListView替换成RecyclerView
  - 将SearchSpinner独立成一个Module

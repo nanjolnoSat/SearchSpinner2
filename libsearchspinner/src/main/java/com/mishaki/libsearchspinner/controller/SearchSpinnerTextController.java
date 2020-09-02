@@ -11,6 +11,7 @@ public class SearchSpinnerTextController {
     private final TextView textView;
 
     public SearchSpinnerTextController(TextView textView) {
+        ControllerUtil.checkView(textView,"TextView");
         this.textView = textView;
     }
 

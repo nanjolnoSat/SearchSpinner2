@@ -20,6 +20,7 @@ public interface SearchSpinnerConstant {
         float DEFAULT_ELEVATION_SIZE = 16f;
         float DEFAULT_ARROW_SIZE = 10f;
         float ARROW_MARGIN_HORIZONTAL = 2.5f;
+        int POPUP_NO_CHANGE = -1;
     }
 
     interface StringValues{

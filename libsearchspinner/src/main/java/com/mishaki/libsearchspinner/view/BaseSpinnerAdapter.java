@@ -28,10 +28,6 @@ public abstract class BaseSpinnerAdapter<T, VH extends RecyclerView.ViewHolder> 
     private int selectedItemColor = SearchSpinnerConstant.Color.GRAY;
     private int selectedPosition = SearchSpinnerConstant.Dimens.INT_DEFAULT;
 
-    public final T getItem(int position) {
-        return list.get(position);
-    }
-
     @NonNull
     @Override
     public final VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -92,6 +88,10 @@ public abstract class BaseSpinnerAdapter<T, VH extends RecyclerView.ViewHolder> 
         return list.size();
     }
 
+    public final T getItem(int position) {
+        return list.get(position);
+    }
+
     void setItemHeight(float itemHeight) {
         if (this.itemHeight == itemHeight) {
             return;
@@ -141,7 +141,7 @@ public abstract class BaseSpinnerAdapter<T, VH extends RecyclerView.ViewHolder> 
     }
 
     public final void setItemInfo(@NonNull String searchText, @NonNull List<T> list) {
-        if (this.searchText.equals(searchText) && this.list == list) {
+        if (Util.isEquals(this.searchText, searchText) && Util.isEquals(this.list, list)) {
             return;
         }
         this.searchText = searchText;
